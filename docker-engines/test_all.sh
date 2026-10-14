@@ -10,18 +10,17 @@ for engine in $(ls -1 "$BASE_DIR"); do
     echo "Testing engine: $engine"
     echo "====================================="
 
-    # We mount the test directory to /workspace and run test.sh.
-    # Because of Docker networking and mounting, we use the absolute path.
-    TEST_DIR="$BASE_DIR/$engine/test"
+    # Mount the engine directory (which contains both test.sh and the test/ directory) to /workspace
+    ENGINE_DIR="$BASE_DIR/$engine"
 
-    if [ -f "$BASE_DIR/$engine/test.sh" ]; then
+    if [ -f "$ENGINE_DIR/test.sh" ]; then
         docker run --rm \
             --user 1000:1000 \
-            -v "$TEST_DIR":/workspace \
+            -v "$ENGINE_DIR":/workspace \
             -w /workspace \
             --entrypoint /bin/bash \
             timequant/engine-${engine}:latest \
-            -c "cd /workspace && bash ../test.sh"
+            -c "./test.sh"
 
         EXIT_CODE=$?
 
