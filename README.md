@@ -4,7 +4,7 @@ Bienvenue dans le dépôt officiel de conteneurisation des moteurs de calcul pou
 
 ---
 
-## 🚀 Contexte et Objectifs
+## Contexte et Objectifs
 
 La plateforme TimeQuant orchestre un écosystème hétérogène de codes de physique et chimie computationnelle. Afin d'éviter tout conflit de bibliothèques (Fortran, OpenMPI, ScaLAPACK, versions de GCC/C++, PyTorch, TensorFlow, Cython et NumPy), chaque moteur est strictement isolé dans sa propre image Docker.
 
@@ -16,7 +16,7 @@ La plateforme TimeQuant orchestre un écosystème hétérogène de codes de phys
 
 ---
 
-## 🏗️ Structure du Projet
+##  Structure du Projet
 
 ```text
 .
@@ -41,7 +41,7 @@ La plateforme TimeQuant orchestre un écosystème hétérogène de codes de phys
 
 ---
 
-## 📊 Registre des 31 Moteurs Validés
+##  Registre des 31 Moteurs Validés
 
 Tous les 31 moteurs sont construits et validés (tests d'intégrité au vert) :
 
@@ -83,7 +83,7 @@ Consultez [REGISTRY.md](docker-engines/REGISTRY.md) pour les détails complets.
 
 ---
 
-## ⚙️ Compilation et Tests
+##  Compilation et Tests
 
 Tous les scripts de compilation et de test supportent à la fois l'ensemble des moteurs ou un sous-ensemble ciblé.
 
@@ -117,7 +117,7 @@ cd docker-engines
 
 ---
 
-## 🔌 Utilisation Standardisée d'un Moteur (I/O)
+##  Utilisation Standardisée d'un Moteur (I/O)
 
 Tous les conteneurs partagent une convention d'entrée/sortie uniforme pour une intégration transparente avec l'orchestrateur TimeQuant.
 
@@ -173,7 +173,7 @@ docker run --rm \
 
 ---
 
-## 🚀 Déploiement vers un Registre Docker
+##  Déploiement vers un Registre Docker
 
 Pour déployer les images construites vers un registre distant (Docker Hub, GitHub Container Registry ou registre d'entreprise privé) :
 
