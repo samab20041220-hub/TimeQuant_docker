@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for siesta'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying SIESTA..."
+which siesta || which /opt/conda/bin/siesta
+echo "SIESTA OK" > output.log

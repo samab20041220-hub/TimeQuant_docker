@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for dftb'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying DFTB+..."
+which dftb+ || which /opt/conda/bin/dftb+
+echo "DFTB+ OK" > output.log

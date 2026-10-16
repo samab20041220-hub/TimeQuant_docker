@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for nanoworks'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying Nanoworks..."
+python3 -c "import nanoworks; print('Nanoworks version:', getattr(nanoworks, '__version__', 'OK'))"
+echo "Nanoworks OK" > output.log

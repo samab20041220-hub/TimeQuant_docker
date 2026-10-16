@@ -4,6 +4,8 @@ RUN pip install --no-cache-dir ase spglib pymatgen
 RUN mkdir -p /workspace
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && chown -R timequant:timequant /workspace
+COPY common/entrypoint-wrapper.sh /usr/local/bin/entrypoint-wrapper.sh
+RUN chmod 755 /usr/local/bin/entrypoint-wrapper.sh
 USER timequant
 WORKDIR /workspace
-ENTRYPOINT ["python3"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-wrapper.sh", "python3"]

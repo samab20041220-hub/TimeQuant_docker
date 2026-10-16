@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN mkdir -p /workspace
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && chown -R timequant:timequant /workspace
+COPY common/entrypoint-wrapper.sh /usr/local/bin/entrypoint-wrapper.sh
+RUN chmod 755 /usr/local/bin/entrypoint-wrapper.sh
 USER timequant
 WORKDIR /workspace
-ENTRYPOINT ["wannier90"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-wrapper.sh", "wannier90"]

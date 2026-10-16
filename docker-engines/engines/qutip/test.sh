@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for qutip'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying QuTiP..."
+python3 -c "import qutip; print('QuTiP version:', qutip.__version__)"
+echo "QuTiP OK" > output.log

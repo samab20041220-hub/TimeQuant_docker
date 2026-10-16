@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for pinn'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying PINN (DeepXDE)..."
+python3 -c "import deepxde; print('DeepXDE version:', deepxde.__version__)"
+echo "PINN OK" > output.log

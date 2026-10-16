@@ -1,4 +1,7 @@
 #!/bin/bash
-echo 'Running test for qe'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying Quantum ESPRESSO..."
+which pw.x
+which ph.x
+which pp.x
+echo "QE OK" > output.log

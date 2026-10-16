@@ -1,16 +1,13 @@
 #!/bin/bash
-set -e
-
-# Generic wrapper for capturing errors and logs
+# Generic wrapper: runs the engine command, streams stderr live and keeps a copy
+# in /workspace/error.log; propagates the engine's exit code.
 echo "[Wrapper] Starting execution of: $@"
 
-# Execute the actual command
-"$@" 2> /workspace/error.log
+"$@" 2> >(tee /workspace/error.log >&2)
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
-  echo "[Wrapper] Execution failed with exit code $EXIT_CODE" >&2
-  cat /workspace/error.log >&2
+  echo "[Wrapper] Execution failed with exit code $EXIT_CODE (stderr saved in /workspace/error.log)" >&2
 fi
 
 exit $EXIT_CODE

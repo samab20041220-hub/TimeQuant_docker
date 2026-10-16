@@ -6,8 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN mkdir -p /workspace
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && chown -R timequant:timequant /workspace
+# VASP is BYOB: placeholder binary, to be replaced by the licensed vasp_std
+RUN printf '#!/bin/bash\necho "VASP BYOB wrapper run"\n' > /usr/local/bin/vasp_std && chmod 755 /usr/local/bin/vasp_std
+COPY common/entrypoint-wrapper.sh /usr/local/bin/entrypoint-wrapper.sh
+RUN chmod 755 /usr/local/bin/entrypoint-wrapper.sh
 USER timequant
 WORKDIR /workspace
-# VASP is BYOB, providing a dummy wrapper
-RUN echo '#!/bin/bash\necho "VASP BYOB wrapper run"' > /usr/local/bin/vasp_std && chmod +x /usr/local/bin/vasp_std
-ENTRYPOINT ["vasp_std"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-wrapper.sh", "vasp_std"]

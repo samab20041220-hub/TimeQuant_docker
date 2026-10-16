@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for phonopy'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying Phonopy..."
+python3 -c "import phonopy; print('Phonopy version:', phonopy.__version__)"
+echo "Phonopy OK" > output.log

@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for amset'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying AMSET..."
+python3 -c "import amset; print('AMSET version:', amset.__version__)"
+echo "AMSET OK" > output.log

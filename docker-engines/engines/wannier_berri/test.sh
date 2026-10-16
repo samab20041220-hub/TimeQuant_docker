@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for wannier_berri'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying WannierBerri..."
+python3 -c "import wannierberri; print('WannierBerri version:', wannierberri.__version__)"
+echo "WannierBerri OK" > output.log

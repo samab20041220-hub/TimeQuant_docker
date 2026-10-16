@@ -1,13 +1,12 @@
-FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
+FROM python:3.10-slim
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir mace-torch ase torch-geometric
-RUN mkdir -p /opt/models && \
-    python3 -c "from mace.calculators import mace_mp; mace_mp(model='medium', default_dtype='float32')" || true
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir torch==2.5.1 --extra-index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir mace-torch ase torch-geometric
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && mkdir -p /workspace && chown -R timequant:timequant /workspace
+COPY common/entrypoint-wrapper.sh /usr/local/bin/entrypoint-wrapper.sh
+RUN chmod 755 /usr/local/bin/entrypoint-wrapper.sh
 USER timequant
 WORKDIR /workspace
-ENTRYPOINT ["python3"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-wrapper.sh", "python3"]

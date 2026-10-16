@@ -33,20 +33,31 @@ Chaque image contient :
 
 ---
 
-## ⚙️ Compilation et Tests Globaux
+## ⚙️ Compilation et Tests
 
-Pour construire l'ensemble des 31 images Docker (attention, cela peut prendre beaucoup de temps et d'espace disque) :
+Pour construire les images Docker (l'ensemble des 31 moteurs ou une sélection spécifique) :
 
 ```bash
 cd docker-engines
+
+# Construire tous les moteurs
 ./build_all.sh
+
+# Ou construire un ou plusieurs moteurs spécifiques :
+./build_all.sh qe
+./build_all.sh qe pyscf mace
 ```
 
-Pour lancer la suite de tests validant l'exécution de chaque moteur :
+Pour lancer la suite de tests validant l'intégrité de chaque moteur (smoke tests) :
 
 ```bash
 cd docker-engines
+
+# Tester tous les moteurs
 ./test_all.sh
+
+# Ou tester un moteur spécifique
+./test_all.sh qe
 ```
 
 ---

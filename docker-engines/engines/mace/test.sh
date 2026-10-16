@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for mace'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying MACE..."
+python3 -c "import mace; print('MACE version:', getattr(mace, '__version__', 'OK'))"
+echo "MACE OK" > output.log

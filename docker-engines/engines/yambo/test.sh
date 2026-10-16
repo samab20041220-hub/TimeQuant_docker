@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for yambo'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying Yambo..."
+which yambo || which /opt/conda/bin/yambo
+echo "Yambo OK" > output.log

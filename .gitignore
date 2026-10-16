@@ -1,2 +1,7 @@
 test_readme.txt
 test_out.txt
+# Artefacts produced by engine smoke tests / wrapper (mounted in /workspace)
+docker-engines/engines/*/output.log
+docker-engines/engines/*/error.log
+__pycache__/
+*.pyc

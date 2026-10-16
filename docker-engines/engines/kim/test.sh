@@ -1,4 +1,6 @@
 #!/bin/bash
-echo 'Running test for kim'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying OpenKIM..."
+which kim-api-collections-management
+kim-api-collections-management list
+echo "OpenKIM OK" > output.log

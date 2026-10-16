@@ -1,4 +1,5 @@
 #!/bin/bash
-echo 'Running test for ase_tools'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying ASE & PyMatGen..."
+python3 -c "import ase; import pymatgen; print('ASE version:', ase.__version__)"
+echo "ASE Tools OK" > output.log

@@ -1,11 +1,22 @@
 #!/bin/bash
 
-BASE_DIR="$(pwd)/docker-engines/engines"
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/engines"
 FAILED_TESTS=()
 
-echo "Testing all TimeQuant engines..."
+if [ $# -gt 0 ]; then
+    ENGINES="$@"
+else
+    ENGINES="$(ls -1 "$BASE_DIR")"
+fi
 
-for engine in $(ls -1 "$BASE_DIR"); do
+echo "Testing TimeQuant engines: $ENGINES"
+
+for engine in $ENGINES; do
+    if [ ! -d "$BASE_DIR/$engine" ]; then
+        echo "Error: Engine directory '$BASE_DIR/$engine' does not exist." >&2
+        FAILED_TESTS+=($engine)
+        continue
+    fi
     echo "====================================="
     echo "Testing engine: $engine"
     echo "====================================="
@@ -14,6 +25,12 @@ for engine in $(ls -1 "$BASE_DIR"); do
     ENGINE_DIR="$BASE_DIR/$engine"
 
     if [ -f "$ENGINE_DIR/test.sh" ]; then
+        if ! docker image inspect "timequant/engine-${engine}:latest" >/dev/null 2>&1; then
+            echo "Image timequant/engine-${engine}:latest not found. Please build it first (e.g. via ./build_all.sh)."
+            FAILED_TESTS+=($engine)
+            continue
+        fi
+
         docker run --rm \
             --user 1000:1000 \
             -v "$ENGINE_DIR":/workspace \

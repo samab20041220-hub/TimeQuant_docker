@@ -1,4 +1,6 @@
 #!/bin/bash
-echo 'Running test for cp2k'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying CP2K..."
+which cp2k
+cp2k --version
+echo "CP2K OK" > output.log

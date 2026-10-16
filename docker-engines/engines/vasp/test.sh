@@ -1,4 +1,6 @@
 #!/bin/bash
-echo 'Running test for vasp'
-touch output.log
-exit 0
+set -e
+echo "[Test] Verifying VASP (BYOB wrapper)..."
+which vasp_std
+vasp_std
+echo "VASP BYOB OK" > output.log
