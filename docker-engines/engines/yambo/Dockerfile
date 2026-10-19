@@ -1,6 +1,6 @@
 FROM mambaorg/micromamba:latest
 USER root
-RUN micromamba install -y -n base -c conda-forge yambo && micromamba clean --all --yes
+RUN micromamba install -y -n base -c conda-forge yambo python=3.10 numpy scipy ase && micromamba clean --all --yes
 ENV PATH="/opt/conda/bin:$PATH"
 RUN mkdir -p /workspace
 RUN useradd -u 1000 -m -s /bin/bash timequant \

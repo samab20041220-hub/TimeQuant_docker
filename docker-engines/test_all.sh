@@ -32,7 +32,7 @@ for engine in $ENGINES; do
         fi
 
         docker run --rm \
-            --user 1000:1000 \
+            --user "$(id -u):$(id -g)" \
             -v "$ENGINE_DIR":/workspace \
             -w /workspace \
             --entrypoint /bin/bash \

@@ -2,7 +2,9 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wannier90 openmpi-bin ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    python3 python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install --no-cache-dir numpy scipy ase
 RUN mkdir -p /workspace
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && chown -R timequant:timequant /workspace
