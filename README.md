@@ -196,3 +196,58 @@ echo $GHCR_PAT | docker login ghcr.io -u <VOTRE_USER_GITHUB> --password-stdin
 docker tag timequant/engine-qe:latest ghcr.io/<VOTRE_USER_GITHUB>/timequant-engine-qe:latest
 docker push ghcr.io/<VOTRE_USER_GITHUB>/timequant-engine-qe:latest
 ```
+
+---
+
+## 🔗 Intégration avec TimeQuant Platform & Exécution HPC Distante
+
+Ces conteneurs sont conçus pour être exécutés de façon transparente soit en **local** par le Celery Worker, soit sur des **serveurs HPC et stations de calcul distantes** (ex: *Station Abraham*, clusters Slurm ou GPU nodes) via le module `hpc_remote_runner.py` de TimeQuant.
+
+### 1. Protocole d'Exécution Distante Orchestrée
+Lorsqu'un utilisateur TimeQuant lance une simulation ciblée vers une machine distante :
+1. **Création du répertoire de travail isolé** :
+   ```bash
+   ssh user@remote "mkdir -p ~/timequant_runs/<user_id>/<calc_id>"
+   ```
+2. **Transfert des fichiers d'entrée** via SFTP (`input.in`, structures CIF, scripts Python ASE/GPAW).
+3. **Lancement du conteneur Docker distant** :
+   ```bash
+   docker run --rm \
+     --user 1000:1000 \
+     -v ~/timequant_runs/<user_id>/<calc_id>:/workspace \
+     -w /workspace \
+     timequant/engine-<moteur>:latest \
+     -c "<commande_de_calcul>"
+   ```
+4. **Récupération des résultats et graphiques Plotly** via SFTP vers TimeQuant Platform.
+5. **Nettoyage automatique** du dossier distant.
+
+### 2. Préparation d'une Machine Distante (ex: Station Abraham)
+Pour habiliter un nœud ou serveur distant à exécuter les moteurs TimeQuant :
+
+```bash
+# 1. Installer Docker sur la machine distante :
+curl -fsSL https://get.docker.com | sh
+
+# 2. Ajouter l'utilisateur SSH au groupe docker (exécution sans sudo requise) :
+sudo usermod -aG docker $USER
+newgrp docker
+
+# 3. Charger ou construire les images sur la machine distante :
+# Option A : Compiler sur place
+cd /chemin/vers/TimeQuant_docker/docker-engines
+./build_all.sh gpaw qe yambo mace
+
+# Option B : Streamer l'image depuis la machine hôte vers la machine distante
+docker save timequant/engine-gpaw:latest | gzip | ssh user@192.168.1.89 "gunzip | docker load"
+
+# 4. Vérifier que Docker fonctionne sans sudo depuis le client TimeQuant :
+ssh user@192.168.1.89 "docker info && docker run --rm timequant/engine-gpaw:latest -c 'python3 -c \"import gpaw; print(gpaw.__version__)\"'"
+```
+
+### 3. Allocation de Ressources (CPU, RAM, GPU)
+Sur les serveurs disposant de plusieurs sockets ou d'accélérateurs GPU, les conteneurs supportent les directives de limitation de ressources Docker :
+- Limiter les processeurs : `--cpus=8`
+- Limiter la mémoire vive : `--memory=32g --memory-swap=32g`
+- Allouer les GPU Nvidia : `--gpus all` ou `--gpus '"device=0,1"'`
+- Threads OpenMP / MPI : `-e OMP_NUM_THREADS=8 -e MPI_NUM_PROCS=8`
