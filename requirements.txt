@@ -1,0 +1,124 @@
+# ==============================================================================
+# TIMEQUANT DOCKER ENGINES — FLOTTE DE 31 MOTEURS QUANTIQUES CONTENEURISÉS
+# Fichier : /home/amos/stage/TimeQuant_docker/requirements.txt
+# Python  : >= 3.10
+#
+# Ce fichier répertorie :
+#   1. Les dépendances Python hôtes pour l'orchestration, le scaffolding et les tests
+#   2. L'ensemble des bibliothèques scientifiques Python installées à travers les
+#      conteneurs des Groupes 2 (Tight-Binding/Transport/Phonons) et 3 (ML/PINNs)
+#      (peut également servir à installer tous les moteurs Python hors-Docker).
+#
+# Note sur les moteurs binaires (Groupes 1 & 4 — Fortran/C/MPI via APT ou Conda) :
+#   - qe         : apt-get install quantum-espresso quantum-espresso-data openmpi-bin
+#   - cp2k       : apt-get install cp2k cp2k-data openmpi-bin
+#   - openmx     : apt-get install openmx openmx-data openmpi-bin
+#   - wannier90  : apt-get install wannier90 openmpi-bin
+#   - siesta     : micromamba install -c conda-forge siesta
+#   - dftb       : micromamba install -c conda-forge dftbplus
+#   - yambo      : micromamba install -c conda-forge yambo
+#   - kim        : apt-get install libkim-api-dev openkim-models
+#   - vasp       : Binaire propriétaire sous licence (BYOB: vasp_std)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Socle Scientifique Commun (Moteur: models & dépendance transversale)
+# ------------------------------------------------------------------------------
+numpy==1.26.4                  # Calcul matriciel (< 2.0 requis pour Kwant, TKwant & DeepGreen)
+scipy==1.13.1                  # Algèbre linéaire creuse, diagonalisation et intégration
+sympy==1.14.0                  # Calcul symbolique (requis par TKwant)
+Cython==3.3.0                  # Compilation Cython (requis par QuTiP, ELEQTRONeX, BoltzTraP2)
+numba==0.67.0                  # Accélération JIT LLVM (requis par WannierBerri)
+pybind11==3.1.0                # Liaison C++11/Python (requis par HetBuilder / Spglib)
+h5py==3.14.0                   # Format binaire HDF5 (requis par WannierBerri, PySCF)
+netCDF4==1.7.4                 # Format binaire NetCDF4 (requis par sisl / SIESTA)
+xarray==2026.7.0               # Grilles multidimensionnelles (requis par sisl)
+matplotlib==3.11.1             # Traçage scientifique (requis par QEH, Nanoworks, ELEQTRONeX)
+
+# ------------------------------------------------------------------------------
+# 2. Groupe 2 — Cristallographie, DFT Python, Tight-Binding, Phonons & Transport
+# ------------------------------------------------------------------------------
+# --- Moteur: ase_tools ---
+ase==3.29.0                    # Atomic Simulation Environment
+spglib==2.7.0                  # Symétries cristallines et groupes d'espace
+pymatgen==2026.5.4             # Python Materials Genomics
+
+# --- Moteur: qeh ---
+qeh==23.6.0                    # Quantum Electrostatic Heterostructures (2D van der Waals)
+
+# --- Moteur: hetdb ---
+hetbuilder>=0.1.0              # Construction géométrique d'hétérostructures 2D tournées (Moiré)
+
+# --- Moteur: sisl ---
+sisl>=0.15.0                   # Manipulation d'Hamiltoniens Tight-Binding & transport NEGF
+
+# --- Moteur: phonopy ---
+phonopy==3.5.1                 # Calculs de phonons harmoniques et propriétés thermiques
+seekpath==2.2.1                # Chemins k de haute symétrie dans la zone de Brillouin
+
+# --- Moteur: atomistics ---
+atomistics==0.3.8              # Workflows d'élasticité et d'équations d'état atomistiques
+
+# --- Moteur: boltztrap ---
+BoltzTraP2==26.3.1             # Transport thermoélectrique semi-classique de Boltzmann
+
+# --- Moteur: amset ---
+amset==0.5.1                   # Taux de diffusion ab-initio et mobilité des porteurs
+interpolation==2.2.7           # Interpolation rapide sur grilles k
+
+# --- Moteur: wannier_berri ---
+wannierberri==26.7.0           # Interpolation de Wannier (courbure de Berry, AHC, optique)
+
+# --- Moteur: qutip ---
+qutip==5.3.1                   # Dynamique des systèmes quantiques ouverts (Lindblad, Bloch)
+
+# --- Moteur: pyscf ---
+pyscf==2.14.0                  # Chimie quantique ab-initio (Hartree-Fock, DFT, CCSD, CASSCF)
+geometric>=1.0.2               # Optimiseur géométrique moléculaire pour PySCF
+pyberny>=0.6.3                 # Optimiseur de structures moléculaires en coordonnées internes
+
+# --- Moteur: gpaw ---
+gpaw==26.7.0                   # Solveur DFT Projector-Augmented Wave (PAW)
+gpaw-data==1.1.0               # Pseudopotentiels et jeux de données PAW
+
+# --- Moteurs: kwant & tkwant ---
+tinyarray==1.2.5               # Petits tableaux C++ immuables pour graphes de réseau
+kwant==1.5.0                   # Transport quantique balistique et cohérent (matrice S)
+mpi4py==4.1.2                  # Parallélisation MPI pour le transport dépendant du temps
+# tkwant>=1.1.0                # Transport quantique dépendant du temps (nécessite libmumps-dev)
+
+# ------------------------------------------------------------------------------
+# 3. Groupe 3 — IA Moléculaire, Potentiels ML (MLIPs) & PINNs
+# ------------------------------------------------------------------------------
+# --- Socle Deep Learning ---
+torch>=2.5.1                   # PyTorch (CPU ou CUDA)
+torch-geometric>=2.6.0         # Réseaux de neurones sur graphes (GNNs atomistiques)
+e3nn==0.4.4                    # Réseaux de neurones équivariants E(3)
+
+# --- Moteur: nanoworks ---
+nanoworks==26.8.0              # Conception et simulation de nanodispositifs
+
+# --- Moteur: electronex ---
+electronex>=0.1.0              # Simulation de transport et dynamique électronique
+
+# --- Moteur: pinn ---
+DeepXDE==1.15.0                # Physics-Informed Neural Networks (solveur EDP/Schrödinger)
+
+# --- Moteur: deeptb ---
+dptb==2.2.1                    # DeePTB : Hamiltoniens Tight-Binding par apprentissage profond
+
+# --- Moteur: rhodent ---
+rhodent==1.1                   # Analyse de porteurs chauds et réponse impulsionnelle TDDFT
+
+# --- Moteur: deepgreen ---
+greenlearning>=0.1.0           # Apprentissage profond de fonctions de Green empiriques
+
+# --- Moteur: mace ---
+mace-torch==0.3.16             # Potentiels interatomiques équivariants d'ordre élevé (MACE)
+
+# ------------------------------------------------------------------------------
+# 4. Outils d'Administration & Tests de la Flotte Docker (Hôte)
+# ------------------------------------------------------------------------------
+pytest==9.1.1                  # Exécution de suites de validation sur les sorties conteneurs
+requests==2.34.2               # Requêtes HTTP vers le démon Docker ou registres
+
