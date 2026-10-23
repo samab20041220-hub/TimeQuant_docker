@@ -29,8 +29,8 @@ on:
       - master
       - feat/real-engines-validated-all-31
     paths:
-      - "docker-engines/**"
-      - ".github/workflows/docker-publish.yml"
+      - "docker-engines/engines/**"
+      - "docker-engines/common/**"
 
 permissions:
   contents: read
@@ -48,12 +48,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Determine engines to build
         id: set-matrix
         run: |
+          EVENT_NAME="${{ github.event_name }}"
           INPUT_ENGINES="${{ github.event.inputs.engines }}"
-          if [ -z "$INPUT_ENGINES" ] || [ "$INPUT_ENGINES" = "all" ]; then
+
+          if [ "$EVENT_NAME" = "push" ]; then
+            # En cas de git push, ne recompiler que les moteurs réellement modifiés
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || true)
+            if echo "$CHANGED_FILES" | grep -q "^docker-engines/common/"; then
+              echo "Modification dans docker-engines/common/ détectée : compilation des 31 moteurs."
+              ENGINES_JSON=$(ls -1 docker-engines/engines | jq -R -s -c 'split("\n")[:-1]')
+            else
+              CHANGED_ENGINES=$(echo "$CHANGED_FILES" | sed -n 's|^docker-engines/engines/\([^/]*\)/.*|\1|p' | sort -u)
+              if [ -n "$CHANGED_ENGINES" ]; then
+                echo "Moteurs modifiés détectés dans ce commit : $CHANGED_ENGINES"
+                ENGINES_JSON=$(printf '%s\n' $CHANGED_ENGINES | jq -R -s -c 'split("\n")[:-1]')
+              else
+                ENGINES_JSON=$(ls -1 docker-engines/engines | jq -R -s -c 'split("\n")[:-1]')
+              fi
+            fi
+          elif [ -z "$INPUT_ENGINES" ] || [ "$INPUT_ENGINES" = "all" ]; then
             ENGINES_JSON=$(ls -1 docker-engines/engines | jq -R -s -c 'split("\n")[:-1]')
           else
             # Support space or comma separated engine names
@@ -66,11 +85,12 @@ jobs:
             done
             ENGINES_JSON=$(printf '%s\n' $CLEAN_LIST | jq -R -s -c 'split("\n")[:-1]')
           fi
+
           echo "Selected engines: $ENGINES_JSON"
           echo "matrix=$ENGINES_JSON" >> "$GITHUB_OUTPUT"
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 2. Compile, teste et pousse chacun des 31 moteurs en parallèle sur le Cloud
+  # 2. Compile, teste et pousse les moteurs sélectionnés en parallèle
   # ──────────────────────────────────────────────────────────────────────────
   build-and-push:
     name: "Engine: ${{ matrix.engine }}"

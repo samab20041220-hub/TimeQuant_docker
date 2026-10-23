@@ -33,6 +33,7 @@ for engine in $ENGINES; do
 
         docker run --rm \
             --user "$(id -u):$(id -g)" \
+            -e HOME=/workspace \
             -v "$ENGINE_DIR":/workspace \
             -w /workspace \
             --entrypoint /bin/bash \

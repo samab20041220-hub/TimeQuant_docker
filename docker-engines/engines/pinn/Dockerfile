@@ -1,5 +1,7 @@
 FROM python:3.10-slim
 ENV DEBIAN_FRONTEND=noninteractive
+ENV HOME=/tmp
+ENV DDE_BACKEND=pytorch
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir DeepXDE

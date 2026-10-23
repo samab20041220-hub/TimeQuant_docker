@@ -1,13 +1,8 @@
-FROM python:3.10-slim
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential cmake git libxc-dev libxc9 \
-    && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir pybind11 numpy scipy ase
-RUN mkdir -p /root/.gpaw && \
-    echo 'libxc = True' > /root/.gpaw/siteconfig.py && \
-    echo 'libraries += ["xc"]' >> /root/.gpaw/siteconfig.py && \
-    pip install --no-cache-dir --no-binary gpaw --no-build-isolation gpaw
+FROM mambaorg/micromamba:latest
+USER root
+ENV HOME=/tmp
+RUN micromamba install -y -n base -c conda-forge gpaw ase scipy && micromamba clean --all --yes
+ENV PATH="/opt/conda/bin:$PATH"
 RUN mkdir -p /workspace /opt/gpaw-setups \
     && gpaw -P 1 install-data /opt/gpaw-setups || true
 ENV GPAW_SETUP_PATH=/opt/gpaw-setups

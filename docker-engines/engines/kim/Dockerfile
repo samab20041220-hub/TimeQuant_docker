@@ -1,5 +1,6 @@
 FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
+ENV HOME=/tmp
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libkim-api-dev openkim-models ca-certificates curl \
     python3 python3-pip \
