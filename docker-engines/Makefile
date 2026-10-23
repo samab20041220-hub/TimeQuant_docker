@@ -7,5 +7,4 @@ test-all:
 	./test_all.sh
 
 push-all:
-	@echo "Pushing all images..."
-	# Implement push logic here
+	./push_all.sh

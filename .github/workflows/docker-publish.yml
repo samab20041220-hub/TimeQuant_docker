@@ -1,0 +1,160 @@
+name: Build & Publish TimeQuant Docker Engines
+
+on:
+  workflow_dispatch:
+    inputs:
+      engines:
+        description: "Moteurs à construire ('all' pour les 31, ou liste séparée par des espaces ex: 'qe gpaw mace')"
+        required: true
+        default: "all"
+        type: string
+      run_tests:
+        description: "Exécuter le smoke test (test.sh) de chaque moteur avant publication"
+        required: true
+        default: true
+        type: boolean
+      dockerhub_namespace:
+        description: "Organisation ou utilisateur Docker Hub cible (laisser vide pour utiliser DOCKERHUB_USERNAME)"
+        required: false
+        default: ""
+        type: string
+  push:
+    branches:
+      - main
+      - master
+      - feat/real-engines-validated-all-31
+    paths:
+      - "docker-engines/**"
+      - ".github/workflows/docker-publish.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Prépare la liste dynamique des moteurs à compiler en parallèle
+  # ──────────────────────────────────────────────────────────────────────────
+  prepare-matrix:
+    name: Prepare Engine Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine engines to build
+        id: set-matrix
+        run: |
+          INPUT_ENGINES="${{ github.event.inputs.engines }}"
+          if [ -z "$INPUT_ENGINES" ] || [ "$INPUT_ENGINES" = "all" ]; then
+            ENGINES_JSON=$(ls -1 docker-engines/engines | jq -R -s -c 'split("\n")[:-1]')
+          else
+            # Support space or comma separated engine names
+            CLEAN_LIST=$(echo "$INPUT_ENGINES" | tr ',' ' ')
+            for eng in $CLEAN_LIST; do
+              if [ ! -d "docker-engines/engines/$eng" ]; then
+                echo "::error::Le dossier moteur 'docker-engines/engines/$eng' n'existe pas."
+                exit 1
+              fi
+            done
+            ENGINES_JSON=$(printf '%s\n' $CLEAN_LIST | jq -R -s -c 'split("\n")[:-1]')
+          fi
+          echo "Selected engines: $ENGINES_JSON"
+          echo "matrix=$ENGINES_JSON" >> "$GITHUB_OUTPUT"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Compile, teste et pousse chacun des 31 moteurs en parallèle sur le Cloud
+  # ──────────────────────────────────────────────────────────────────────────
+  build-and-push:
+    name: "Engine: ${{ matrix.engine }}"
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build engine image (timequant/engine-${{ matrix.engine }}:latest)
+        working-directory: docker-engines
+        run: |
+          ./build_all.sh "${{ matrix.engine }}"
+
+      - name: Run Smoke Tests (test.sh)
+        if: ${{ github.event.inputs.run_tests != 'false' }}
+        working-directory: docker-engines
+        run: |
+          ./test_all.sh "${{ matrix.engine }}"
+
+      # ── Publication sur Docker Hub (si les secrets sont configurés) ────────
+      - name: Check Docker Hub credentials
+        id: dockerhub-check
+        env:
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DH_USER" ] && [ -n "$DH_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Secrets DOCKERHUB_USERNAME / DOCKERHUB_TOKEN non configurés. Publication Docker Hub ignorée (publication GHCR active)."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to Docker Hub
+        if: steps.dockerhub-check.outputs.enabled == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag and Push to Docker Hub
+        if: steps.dockerhub-check.outputs.enabled == 'true'
+        env:
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DH_NS_INPUT: ${{ github.event.inputs.dockerhub_namespace }}
+          DH_NS_VAR: ${{ vars.DOCKERHUB_NAMESPACE }}
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          NAMESPACE="${DH_NS_INPUT:-${DH_NS_VAR:-$DH_USER}}"
+          IMAGE_NAME="${NAMESPACE}/engine-${{ matrix.engine }}"
+          SHA_TAG="${SHORT_SHA::7}"
+
+          echo "Pushing to Docker Hub: ${IMAGE_NAME}:latest & ${IMAGE_NAME}:${SHA_TAG}"
+          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${IMAGE_NAME}:latest"
+          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${IMAGE_NAME}:${SHA_TAG}"
+
+          docker push "${IMAGE_NAME}:latest"
+          docker push "${IMAGE_NAME}:${SHA_TAG}"
+
+      # ── Publication automatique sur GitHub Container Registry (ghcr.io) ───
+      - name: Log in to GitHub Container Registry (ghcr.io)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and Push to GHCR (ghcr.io)
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          GHCR_IMAGE="ghcr.io/${OWNER_LOWER}/engine-${{ matrix.engine }}"
+          SHA_TAG="${SHORT_SHA::7}"
+
+          echo "Pushing to GHCR: ${GHCR_IMAGE}:latest & ${GHCR_IMAGE}:${SHA_TAG}"
+          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${GHCR_IMAGE}:latest"
+          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${GHCR_IMAGE}:${SHA_TAG}"
+
+          docker push "${GHCR_IMAGE}:latest"
+          docker push "${GHCR_IMAGE}:${SHA_TAG}"
+
