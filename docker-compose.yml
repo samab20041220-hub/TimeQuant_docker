@@ -1,0 +1,144 @@
+services:
+  # ── GPAW Engine ────────────────────────────────────────────────
+  engine-gpaw:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/gpaw/Dockerfile
+    image: timequant/engine-gpaw:latest
+    container_name: tq-engine-gpaw
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["gpaw", "all"]
+
+  # ── Quantum ESPRESSO Engine ────────────────────────────────────
+  engine-qe:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/qe/Dockerfile
+    image: timequant/engine-qe:latest
+    container_name: tq-engine-qe
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["qe", "all"]
+
+  # ── MACE ML Interatomic Potentials ─────────────────────────────
+  engine-mace:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/mace/Dockerfile
+    image: timequant/engine-mace:latest
+    container_name: tq-engine-mace
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["mace", "all"]
+
+  # ── DeePTB Machine Learning Tight-Binding ──────────────────────
+  engine-deeptb:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/deeptb/Dockerfile
+    image: timequant/engine-deeptb:latest
+    container_name: tq-engine-deeptb
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["deeptb", "all"]
+
+  # ── Phonopy Engine ─────────────────────────────────────────────
+  engine-phonopy:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/phonopy/Dockerfile
+    image: timequant/engine-phonopy:latest
+    container_name: tq-engine-phonopy
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["phonopy", "all"]
+
+  # ── SIESTA Engine ──────────────────────────────────────────────
+  engine-siesta:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/siesta/Dockerfile
+    image: timequant/engine-siesta:latest
+    container_name: tq-engine-siesta
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["siesta", "all"]
+
+  # ── Yambo Many-Body (GW/BSE) ───────────────────────────────────
+  engine-yambo:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/yambo/Dockerfile
+    image: timequant/engine-yambo:latest
+    container_name: tq-engine-yambo
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["yambo", "all"]
+
+  # ── Kwant Quantum Transport ────────────────────────────────────
+  engine-kwant:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/kwant/Dockerfile
+    image: timequant/engine-kwant:latest
+    container_name: tq-engine-kwant
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["kwant", "all"]
+
+  # ── DFTB+ Engine ───────────────────────────────────────────────
+  engine-dftb:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/dftb/Dockerfile
+    image: timequant/engine-dftb:latest
+    container_name: tq-engine-dftb
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["dftb", "all"]
+
+  # ── PySCF Quantum Chemistry ────────────────────────────────────
+  engine-pyscf:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/pyscf/Dockerfile
+    image: timequant/engine-pyscf:latest
+    container_name: tq-engine-pyscf
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["pyscf", "all"]
+
+  # ── BoltzTraP2 Thermoelectrics ─────────────────────────────────
+  engine-boltztrap:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/boltztrap/Dockerfile
+    image: timequant/engine-boltztrap:latest
+    container_name: tq-engine-boltztrap
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["boltztrap", "all"]
+
+  # ── hetDB Moiré Heterostructures ───────────────────────────────
+  engine-hetdb:
+    build:
+      context: ./docker-engines
+      dockerfile: engines/hetdb/Dockerfile
+    image: timequant/engine-hetdb:latest
+    container_name: tq-engine-hetdb
+    volumes:
+      - ./workspace:/workspace
+    working_dir: /workspace
+    profiles: ["hetdb", "all"]

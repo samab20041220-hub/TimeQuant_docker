@@ -5,3 +5,4 @@ docker-engines/engines/*/output.log
 docker-engines/engines/*/error.log
 __pycache__/
 *.pyc
+*.log
