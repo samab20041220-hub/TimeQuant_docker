@@ -18,6 +18,11 @@ on:
         required: false
         default: ""
         type: string
+      push_to_ghcr:
+        description: "Publier également une copie sur GitHub Container Registry (ghcr.io)"
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -94,7 +99,7 @@ jobs:
         run: |
           ./test_all.sh "${{ matrix.engine }}"
 
-      # ── Publication sur Docker Hub (si les secrets sont configurés) ────────
+      # ── Publication sur Docker Hub ─────────────────────────────────────────
       - name: Check Docker Hub credentials
         id: dockerhub-check
         env:
@@ -104,8 +109,8 @@ jobs:
           if [ -n "$DH_USER" ] && [ -n "$DH_TOKEN" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::Secrets DOCKERHUB_USERNAME / DOCKERHUB_TOKEN non configurés. Publication Docker Hub ignorée (publication GHCR active)."
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Secrets DOCKERHUB_USERNAME / DOCKERHUB_TOKEN non configurés dans Settings > Secrets and variables > Actions."
+            exit 1
           fi
 
       - name: Log in to Docker Hub
@@ -134,8 +139,9 @@ jobs:
           docker push "${IMAGE_NAME}:latest"
           docker push "${IMAGE_NAME}:${SHA_TAG}"
 
-      # ── Publication automatique sur GitHub Container Registry (ghcr.io) ───
+      # ── Publication optionnelle sur GitHub Container Registry (ghcr.io) ────
       - name: Log in to GitHub Container Registry (ghcr.io)
+        if: ${{ github.event.inputs.push_to_ghcr == 'true' }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -143,12 +149,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag and Push to GHCR (ghcr.io)
+        if: ${{ github.event.inputs.push_to_ghcr == 'true' }}
+        continue-on-error: true
         env:
-          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_FULL: ${{ github.repository }}
           SHORT_SHA: ${{ github.sha }}
         run: |
-          OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
-          GHCR_IMAGE="ghcr.io/${OWNER_LOWER}/engine-${{ matrix.engine }}"
+          REPO_LOWER=$(echo "$REPO_FULL" | tr '[:upper:]' '[:lower:]')
+          GHCR_IMAGE="ghcr.io/${REPO_LOWER}/engine-${{ matrix.engine }}"
           SHA_TAG="${SHORT_SHA::7}"
 
           echo "Pushing to GHCR: ${GHCR_IMAGE}:latest & ${GHCR_IMAGE}:${SHA_TAG}"
@@ -157,4 +165,3 @@ jobs:
 
           docker push "${GHCR_IMAGE}:latest"
           docker push "${GHCR_IMAGE}:${SHA_TAG}"
-
