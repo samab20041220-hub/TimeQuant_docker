@@ -21,7 +21,8 @@ for engine in $ENGINES; do
     echo "Building engine: $engine"
     echo "====================================="
     docker build --network=host -f "$BASE_DIR/$engine/Dockerfile" -t timequant/engine-${engine}:latest "$ROOT_DIR"
-    echo "Successfully built timequant/engine-${engine}:latest"
+    docker tag timequant/engine-${engine}:latest zorbeur/engine-${engine}:latest 2>/dev/null || true
+    echo "Successfully built timequant/engine-${engine}:latest and zorbeur/engine-${engine}:latest"
 done
 
 echo "All engines built successfully!"

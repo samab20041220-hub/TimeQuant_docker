@@ -105,10 +105,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build engine image (timequant/engine-${{ matrix.engine }}:latest)
+      - name: Build engine image for local smoke test
         working-directory: docker-engines
         run: |
           ./build_all.sh "${{ matrix.engine }}"
@@ -140,24 +143,33 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Tag and Push to Docker Hub
+      - name: Build and Push Multi-Arch (amd64 + arm64) to Docker Hub
         if: steps.dockerhub-check.outputs.enabled == 'true'
         env:
           DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
           DH_NS_INPUT: ${{ github.event.inputs.dockerhub_namespace }}
           DH_NS_VAR: ${{ vars.DOCKERHUB_NAMESPACE }}
           SHORT_SHA: ${{ github.sha }}
+        working-directory: docker-engines
         run: |
           NAMESPACE="${DH_NS_INPUT:-${DH_NS_VAR:-$DH_USER}}"
           IMAGE_NAME="${NAMESPACE}/engine-${{ matrix.engine }}"
           SHA_TAG="${SHORT_SHA::7}"
+          DF_PATH="engines/${{ matrix.engine }}/Dockerfile"
 
-          echo "Pushing to Docker Hub: ${IMAGE_NAME}:latest & ${IMAGE_NAME}:${SHA_TAG}"
-          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${IMAGE_NAME}:latest"
-          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${IMAGE_NAME}:${SHA_TAG}"
+          EXTRA_TAGS=""
+          if [ "$NAMESPACE" != "zorbeur" ]; then
+            EXTRA_TAGS="-t zorbeur/engine-${{ matrix.engine }}:latest"
+          fi
 
-          docker push "${IMAGE_NAME}:latest"
-          docker push "${IMAGE_NAME}:${SHA_TAG}"
+          echo "Building & Pushing Multi-Arch to Docker Hub: ${IMAGE_NAME}:latest & ${IMAGE_NAME}:${SHA_TAG}"
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -f "$DF_PATH" \
+            -t "${IMAGE_NAME}:latest" \
+            -t "${IMAGE_NAME}:${SHA_TAG}" \
+            $EXTRA_TAGS \
+            --push .
 
       # ── Publication optionnelle sur GitHub Container Registry (ghcr.io) ────
       - name: Log in to GitHub Container Registry (ghcr.io)
@@ -168,20 +180,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Tag and Push to GHCR (ghcr.io)
+      - name: Build and Push Multi-Arch (amd64 + arm64) to GHCR
         if: ${{ github.event.inputs.push_to_ghcr == 'true' }}
         continue-on-error: true
         env:
           REPO_FULL: ${{ github.repository }}
           SHORT_SHA: ${{ github.sha }}
+        working-directory: docker-engines
         run: |
           REPO_LOWER=$(echo "$REPO_FULL" | tr '[:upper:]' '[:lower:]')
           GHCR_IMAGE="ghcr.io/${REPO_LOWER}/engine-${{ matrix.engine }}"
           SHA_TAG="${SHORT_SHA::7}"
+          DF_PATH="engines/${{ matrix.engine }}/Dockerfile"
 
-          echo "Pushing to GHCR: ${GHCR_IMAGE}:latest & ${GHCR_IMAGE}:${SHA_TAG}"
-          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${GHCR_IMAGE}:latest"
-          docker tag "timequant/engine-${{ matrix.engine }}:latest" "${GHCR_IMAGE}:${SHA_TAG}"
-
-          docker push "${GHCR_IMAGE}:latest"
-          docker push "${GHCR_IMAGE}:${SHA_TAG}"
+          echo "Building & Pushing Multi-Arch to GHCR: ${GHCR_IMAGE}:latest & ${GHCR_IMAGE}:${SHA_TAG}"
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -f "$DF_PATH" \
+            -t "${GHCR_IMAGE}:latest" \
+            -t "${GHCR_IMAGE}:${SHA_TAG}" \
+            --push .
