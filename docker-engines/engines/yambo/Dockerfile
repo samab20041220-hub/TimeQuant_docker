@@ -2,6 +2,7 @@ FROM mambaorg/micromamba:latest
 USER root
 RUN micromamba install -y -n base -c conda-forge yambo python=3.10 numpy scipy ase && micromamba clean --all --yes
 ENV PATH="/opt/conda/bin:$PATH"
+RUN ln -sf /opt/conda/bin/python3 /usr/local/bin/python3 || true
 RUN mkdir -p /workspace
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && chown -R timequant:timequant /workspace
