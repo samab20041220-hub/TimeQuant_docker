@@ -1,6 +1,7 @@
 FROM mambaorg/micromamba:latest
 USER root
-RUN micromamba install -y -n base -c conda-forge yambo python=3.10 numpy scipy ase && micromamba clean --all --yes
+RUN micromamba install -y -n base -c conda-forge yambo qe python=3.10 numpy scipy ase && micromamba clean --all --yes
+RUN /opt/conda/bin/pip install --no-cache-dir yambopy
 ENV PATH="/opt/conda/bin:$PATH"
 RUN ln -sf /opt/conda/bin/python3 /usr/local/bin/python3 || true
 RUN mkdir -p /workspace

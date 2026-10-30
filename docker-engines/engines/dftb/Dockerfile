@@ -2,6 +2,8 @@ FROM mambaorg/micromamba:latest
 USER root
 RUN micromamba install -y -n base -c conda-forge dftbplus python=3.10 numpy scipy ase && micromamba clean --all --yes
 ENV PATH="/opt/conda/bin:$PATH"
+RUN ln -sf /opt/conda/bin/python3 /usr/local/bin/python3 || true \
+    && ln -sf /opt/conda/bin/python3 /usr/bin/python3 || true
 RUN mkdir -p /workspace /opt/slater_koster
 RUN useradd -u 1000 -m -s /bin/bash timequant \
     && chown -R timequant:timequant /workspace
