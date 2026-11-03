@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  test_runner:
+    image: python:3.11-slim
+    volumes:
+      - ./engines:/engines
+      - ./common:/common
+    command: python3 /common/test_runner.py
